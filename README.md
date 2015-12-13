@@ -43,16 +43,16 @@ module Orders
       result = Failure(errors: ["Sold out"]) and raise ActiveRecord::Rollback if product.sold_out?
 
       customer = Customer.find_or_create_by(customer_options)
-      result = Failure(error_messages_for(customer)) and raise ActiveRecord::Rollback unless customer.valid?
+      result = Failure(customer.errors.full_messages) and raise ActiveRecord::Rollback unless customer.valid?
 
       address = Address.find_or_create_by(shipping_address_options.merge(product: purchaser))
-      result = Failure(error_messages_for(address)) and raise ActiveRecord::Rollback unless address.valid?
+      result = Failure(address.errors.full_messages) and raise ActiveRecord::Rollback unless address.valid?
 
       order = Orders::Order.create(order_options)
-      result = Failure(error_messages_for(order)) and raise ActiveRecord::Rollback unless order.valid?
+      result = Failure(order.errors.full_messages) and raise ActiveRecord::Rollback unless order.valid?
 
       charge = Orders::Charge.create(charge_options.merge(order: order))
-      result = Failure(error_messages_for(charge)) and raise ActiveRecord::Rollback unless charge.valid?
+      result = Failure(charge.errors.full_messages) and raise ActiveRecord::Rollback unless charge.valid?
 
       result = Success(product: product, order: order, customer: customer, address: address, charge: charge)
     end
@@ -80,6 +80,38 @@ class OrdersController < ApplicationController
   end
 end
 ```
+
+## API
+
+#### RubyResult#Success(value)
+
+Convenience method for constructing a `RubyResult::Success` object.
+
+#### RubyResult#Failure(value)
+
+Convenience method for constructing a `RubyResult::Failure` object.
+
+#### .new(value)
+
+Create a new `Success` or `Failure` object with some arbitrary value.
+
+#### .===(other)
+
+Compare `other` with `self`. If `other` is an instance of `self`, then it is true. Usefull in case statements.
+
+#### #success?
+
+Returns true if `self` is an instance of `RubyResult::Success`.
+
+#### #failure?
+
+Returns true if `self` is an instance of `RubyResult::Failure`.
+
+#### #value
+
+Returns the value provided when constructing an `Success` or `Failure` object.
+
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/benjreinhart/ruby_result. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
