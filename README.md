@@ -40,7 +40,7 @@ module Orders
     result = nil
 
     product.with_lock do
-      result = Failure(messages: ["Sold out"]) and raise ActiveRecord::Rollback if product.sold_out?
+      result = Failure(errors: ["Sold out"]) and raise ActiveRecord::Rollback if product.sold_out?
 
       customer = Customer.find_or_create_by(customer_options)
       result = Failure(error_messages_for(customer)) and raise ActiveRecord::Rollback unless customer.valid?
@@ -54,10 +54,7 @@ module Orders
       charge = Orders::Charge.create(charge_options.merge(order: order))
       result = Failure(error_messages_for(charge)) and raise ActiveRecord::Rollback unless charge.valid?
 
-      shipment = Orders::Shipment.create(order: order, address: address)
-      result = Failure(error_messages_for(shipment)) and raise ActiveRecord::Rollback unless shipment.valid?
-
-      result = Success(order)
+      result = Success(product: product, order: order, customer: customer, address: address, charge: charge)
     end
 
     result
@@ -76,16 +73,16 @@ class OrdersController < ApplicationController
 
     case result = Orders.create_order(product, order_options: order_options, customer_options: customer_options, shipping_address_options: shipping_address_options, charge_options: charge_options)
     when Success
-      redirect_to orders_path(result.value), notice: "Successfully completed order"
+      redirect_to customer_order_path(result.value[:customer], result.value[:order]), notice: "Successfully completed order"
     when Failure
-      redirect_to product_path(product), alert: result.value[:messages].join(". ")
+      redirect_to product_path(product), alert: result.value[:errors].join(". ")
     end
   end
 end
 ```
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ruby_result. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/benjreinhart/ruby_result. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 
 ## License
