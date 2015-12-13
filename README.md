@@ -87,29 +87,59 @@ end
 
 Convenience method for constructing a `RubyResult::Success` object.
 
+```ruby
+Success("hooray")
+```
+
 #### RubyResult#Failure(value)
 
 Convenience method for constructing a `RubyResult::Failure` object.
 
-#### .new(value)
+```ruby
+Failure("error message")
+```
 
-Create a new `Success` or `Failure` object with some arbitrary value.
+#### RubyResult::[Success,Failure].new(value)
 
-#### .===(other)
+Create a new `Success` or `Failure` object with some arbitrary `value`.
+
+#### RubyResult::[Success,Failure].===(other)
 
 Compare `other` with `self`. If `other` is an instance of `self`, then it is true. Usefull in case statements.
 
-#### #success?
+```ruby
+case result = Something.perform(*args)
+when Success then do_something
+when Failure then do_something_else
+end
+```
+
+#### RubyResult::[Success,Failure]#success?
 
 Returns true if `self` is an instance of `RubyResult::Success`.
 
-#### #failure?
+```ruby
+result = Something.perform(*args)
+do_something if result.success?
+```
+
+#### RubyResult::[Success,Failure]#failure?
 
 Returns true if `self` is an instance of `RubyResult::Failure`.
 
-#### #value
+```ruby
+result = Something.perform(*args)
+do_something if result.failure?
+```
+
+#### RubyResult::[Success,Failure]#value
 
 Returns the value provided when constructing an `Success` or `Failure` object.
+
+```ruby
+result = Success(order: order)
+result.value # { order: <#Order...> }
+```
 
 
 ## Contributing
