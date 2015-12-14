@@ -45,10 +45,10 @@ module Orders
       customer = Customer.find_or_create_by(customer_options)
       result = Failure(errors: customer.errors.full_messages) and raise ActiveRecord::Rollback unless customer.valid?
 
-      address = Address.find_or_create_by(shipping_address_options.merge(product: purchaser))
+      address = Address.find_or_create_by(shipping_address_options.merge(customer: customer))
       result = Failure(errors: address.errors.full_messages) and raise ActiveRecord::Rollback unless address.valid?
 
-      order = Orders::Order.create(order_options)
+      order = Orders::Order.create(order_options.merge(product: product, customer: customer))
       result = Failure(errors: order.errors.full_messages) and raise ActiveRecord::Rollback unless order.valid?
 
       charge = Orders::Charge.create(charge_options.merge(order: order))
